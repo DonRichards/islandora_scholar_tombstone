@@ -25,7 +25,7 @@ INTRODUCTION
  What is a tombstone?
  Simply, a place holder page with limited information to inform the user that they have found the content they are
  looking for but it isn't not currently available.
- [![Wild Wild West](https://c2.staticflickr.com/4/3854/14767540082_c9cbd87acf_m_d.jpg)
+ ![Wild Wild West](https://c2.staticflickr.com/4/3854/14767540082_c9cbd87acf_m_d.jpg)
 
 REQUIREMENTS
 ------------
