@@ -1,0 +1,3 @@
+name = Islandora Scholar Tombstoning
+description = Implement tombstoning within scholar.
+core = 7.x
