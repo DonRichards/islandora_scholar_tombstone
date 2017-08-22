@@ -57,7 +57,36 @@ function islandora_scholar_tombstone_page_build() {
 
   drupal_add_js(drupal_get_path('module', 'islandora_scholar_tombstone') . '/js/islandora_scholar_tombstone.js');
   drupal_add_css(drupal_get_path('module', 'islandora_scholar_tombstone') . '/css/islandora_scholar_tombstone.css');
-
+  $path = drupal_get_path_alias($_GET['q']);
+  module_load_include('inc', 'islandora_scholar_embargo', 'includes/utilities');
+    $count = FALSE;
+  $current_embargo = <<<EOQ
+PREFIX is: <info:islandora/islandora-system:def/scholar#>
+SELECT ?obj ?date
+FROM <#ri>
+WHERE {
+  ?obj is:embargo-until ?date
+}
+EOQ;
+    if ($count) {
+        $current_embargo .= <<<EOQ
+ORDER BY ?obj
+EOQ;
+    }
+    $connection = islandora_get_tuque_connection();
+    $ri = $connection->repository->ri;
+//    dsm($count ? $ri->countQuery($current_embargo, 'sparql') : $ri->sparqlQuery($current_embargo, 'unlimited', '0'));
+    $check_embargo = $ri->sparqlQuery($current_embargo, 'unlimited', '0');
+//    dsm($check_embargo[0]['date']['value']);
+//    dsm(strtotime($check_embargo[0]['date']['value']));
+    global $variables;
+//    if embargo date is less than current date display message
+    if (strtotime($check_embargo[0]['date']['value']) >= time() ) {
+        dsm('It is: ', time());
+        dsm(strtotime($check_embargo[0]['date']['value']));
+        dsm(strtotime($check_embargo[0]['date']['value']) - time());
+        dsm($variables);
+    }
 }
 
 
