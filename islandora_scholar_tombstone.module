@@ -7,16 +7,28 @@
  * Long description here.
  */
 
+
+/*
+ * Looking for if the:
+ * Any file datastream isn't
+ *  - MODS
+ *  - PDF
+ *  - Supple# optional with no impact on this feature.
+ */
+
 /**
  * Implements hook_menu().
  */
 function islandora_scholar_tombstone_menu() {
-  $items['example'] = array(
-    'title' => 'Example Page',
-    'page callback' => 'islandora_scholar_tombstone_page',
-    'access arguments' => array('access content'),
-    'type' => MENU_NORMAL_ITEM,
-  );
+    $items = array();
+    $items['admin/settings/islandora_scholar_tombstone'] = array(
+        'title' => 'On this date module settings',
+        'description' => 'Description of your On this date settings page',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('islandora_scholar_tombstone'),
+        'access arguments' => array('administer islandora_scholar_tombstone settings'),
+        'type' => MENU_NORMAL_ITEM,
+    );
   return $items;
 }
 
@@ -54,46 +66,83 @@ function islandora_scholar_tombstone_page() {
  * Add JavaScript and CSS code to every page.
  */
 function islandora_scholar_tombstone_page_build() {
-
-  drupal_add_js(drupal_get_path('module', 'islandora_scholar_tombstone') . '/js/islandora_scholar_tombstone.js');
-  drupal_add_css(drupal_get_path('module', 'islandora_scholar_tombstone') . '/css/islandora_scholar_tombstone.css');
+dsm('module is running');
+//  drupal_add_js(drupal_get_path('module', 'islandora_scholar_tombstone') . '/js/islandora_scholar_tombstone.js');
+//  drupal_add_css(drupal_get_path('module', 'islandora_scholar_tombstone') . '/css/islandora_scholar_tombstone.css');
   $path = drupal_get_path_alias($_GET['q']);
   module_load_include('inc', 'islandora_scholar_embargo', 'includes/utilities');
-    $count = FALSE;
+  $count = FALSE;
   $current_embargo = <<<EOQ
-PREFIX is: <info:islandora/islandora-system:def/scholar#>
-SELECT ?obj ?date
-FROM <#ri>
-WHERE {
-  ?obj is:embargo-until ?date
-}
+    PREFIX is: <info:islandora/islandora-system:def/scholar#>
+    SELECT ?obj ?date
+    FROM <#ri>
+        WHERE {
+            ?obj is:embargo-until ?date
+            }
 EOQ;
     if ($count) {
         $current_embargo .= <<<EOQ
-ORDER BY ?obj
+        ORDER BY ?obj
+        }
 EOQ;
-    }
+        }
+
+    dpm(var_dump(get_defined_vars()));
     $connection = islandora_get_tuque_connection();
     $ri = $connection->repository->ri;
-//    dsm($count ? $ri->countQuery($current_embargo, 'sparql') : $ri->sparqlQuery($current_embargo, 'unlimited', '0'));
     $check_embargo = $ri->sparqlQuery($current_embargo, 'unlimited', '0');
+    dpm($check_embargo);
+
+    //    dsm($count ? $ri->countQuery($current_embargo, 'sparql') : $ri->sparqlQuery($current_embargo, 'unlimited', '0'));
+
 //    dsm($check_embargo[0]['date']['value']);
 //    dsm(strtotime($check_embargo[0]['date']['value']));
-    global $variables;
+
+dpm(trim(current_path(), 'islandora/object'));
+
 //    if embargo date is less than current date display message
-    if (strtotime($check_embargo[0]['date']['value']) >= time() ) {
-        dsm('It is: ', time());
-        dsm(strtotime($check_embargo[0]['date']['value']));
-        dsm(strtotime($check_embargo[0]['date']['value']) - time());
-        dsm($variables);
+    if (isset($check_embargo[0]['date']['value'])) {
+        $datastreams_required_for_an_embargo = array('MODS', 'PDF');
+        $collections_requiring_embargo_message = array('');
+
+        foreach ($check_embargo as $key => $value) {
+            if ($value['date']['value'] == 'indefinite') {
+                dsm('Indefinite embargo found: ', time());
+            }
+            elseif (strtotime($value['date']['value']) >= time()) {
+//                dpm('In time');
+//                dsm(date('M d Y', strtotime($check_embargo[0]['date']['value'])));
+//                dsm(strtotime($check_embargo[0]['date']['value']) - time());
+                trim(current_path(), 'islandora/object');
+            }
+        }
+        // dsm($ri->sparqlQuery($current_embargo));
     }
+
+//    Retraction Notice instead.
+
 }
 
 
-function islandora_scholar_tombstone_custom_page(){
-//Example of desired return
+function hook_page_alter(){
+dsm('Boom');
+    //Example of desired return
 //Embargo will expire:
 //21-Aug-2017 11:05 AM EDT
 //Released to reporters:
 //14-Aug-2017 3:00 PM EDT
+}
+
+function islandora_scholar_tombstone_admin() {
+    $form = array();
+
+    $form['islandora_scholar_tombstone_datastreams'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Datastreams Required'),
+        '#default_value' => variable_get('islandora_scholar_tombstone_datastreams'),
+        '#description' => t("Give a list of datastreams to look for /n Examples: 'MODS','PDF' ."),
+        '#required' => TRUE,
+    );
+
+    return system_settings_form($form);
 }
