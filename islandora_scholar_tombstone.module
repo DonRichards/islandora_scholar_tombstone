@@ -69,10 +69,25 @@ function islandora_scholar_tombstone_page_build() {
 dsm('module is running');
 //  drupal_add_js(drupal_get_path('module', 'islandora_scholar_tombstone') . '/js/islandora_scholar_tombstone.js');
 //  drupal_add_css(drupal_get_path('module', 'islandora_scholar_tombstone') . '/css/islandora_scholar_tombstone.css');
-  $path = drupal_get_path_alias($_GET['q']);
-  module_load_include('inc', 'islandora_scholar_embargo', 'includes/utilities');
-  $count = FALSE;
-  $current_embargo = <<<EOQ
+//  $path = drupal_get_path_alias($_GET['q']);
+
+
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function islandora_scholar_tombstone_page_alter(&$page)
+{
+    dpm($page);
+
+    if (isset($page['content']['system_main']['citation.tab']['preview']['#path'])) {
+        unset($page['content']['system_main']['citation.tab']['preview']['#path']);
+    }
+
+    module_load_include('inc', 'islandora_scholar_embargo', 'includes/utilities');
+    $count = FALSE;
+    $current_embargo = <<<EOQ
     PREFIX is: <info:islandora/islandora-system:def/scholar#>
     SELECT ?obj ?date
     FROM <#ri>
@@ -85,53 +100,95 @@ EOQ;
         ORDER BY ?obj
         }
 EOQ;
-        }
+    }
 
-    dpm(var_dump(get_defined_vars()));
+$not_current_embargo = <<<EOQ
+    PREFIX is: <info:islandora/islandora-system:def/scholar#>
+    SELECT ?obj
+    FROM <#ri>
+        WHERE {
+            ?obj
+            }
+EOQ;
+    if ($count) {
+        $not_current_embargo .= <<<EOQ
+        ORDER BY ?obj
+        }
+EOQ;
+    }
+//    dpm(var_dump(get_defined_vars()));
     $connection = islandora_get_tuque_connection();
     $ri = $connection->repository->ri;
     $check_embargo = $ri->sparqlQuery($current_embargo, 'unlimited', '0');
-    dpm($check_embargo);
 
-    //    dsm($count ? $ri->countQuery($current_embargo, 'sparql') : $ri->sparqlQuery($current_embargo, 'unlimited', '0'));
 
+
+    // ^^^^^^^^^^^^^^^ HERE ^^^^^^^^^^^^^^^^^^^
+    $not_check_embargo = $ri->sparqlQuery($not_current_embargo, 'unlimited');
+    dpm($not_check_embargo);
+
+//  Looking to get the object's information and pipe it to line 160  
+
+
+
+
+
+//    dpm($page);
+//    dsm($count ? $ri->countQuery($current_embargo, 'sparql') : $ri->sparqlQuery($current_embargo, 'unlimited', '0'));
 //    dsm($check_embargo[0]['date']['value']);
 //    dsm(strtotime($check_embargo[0]['date']['value']));
-
-dpm(trim(current_path(), 'islandora/object'));
+//    dpm(trim(current_path(), 'islandora/object'));
 
 //    if embargo date is less than current date display message
     if (isset($check_embargo[0]['date']['value'])) {
-        $datastreams_required_for_an_embargo = array('MODS', 'PDF');
-        $collections_requiring_embargo_message = array('');
 
-        foreach ($check_embargo as $key => $value) {
-            if ($value['date']['value'] == 'indefinite') {
-                dsm('Indefinite embargo found: ', time());
-            }
-            elseif (strtotime($value['date']['value']) >= time()) {
+        $datastreams_required_for_an_withdrawn_message = array
+        (
+            array('MODS', NULL),
+            array('PDF', NULL)
+        );
+        $collections_using_this_withdrawn_message = array('utk.ir.td');
+
+//        dsm('Indefinite embargo found: ', time());
+
+
+//        Object Level Embargo
+        if ($check_embargo[0]['date']['value'] == 'indefinite') {
+            $page['content']['system_main']['nodes'][8]['body'][0]['#markup'] = t('
+                    <h1>@title</h1>
+                    <p>What?</p>
+                    ', array('@title' => $current_embargo));
+        } else {
+            foreach ($check_embargo as $key => $value) {
+                if ($value['date']['value'] == 'indefinite') {
+
+                } elseif (strtotime($value['date']['value']) <= time()) {
 //                dpm('In time');
 //                dsm(date('M d Y', strtotime($check_embargo[0]['date']['value'])));
 //                dsm(strtotime($check_embargo[0]['date']['value']) - time());
-                trim(current_path(), 'islandora/object');
-            }
-        }
-        // dsm($ri->sparqlQuery($current_embargo));
-    }
 
+//
+                    if ($page['content']['system_main']['citation.tab']['citation']['#markup'] == 'Unable to load MODS.') {
+                        $page['content']['system_main']['citation.tab']['citation']['#markup'] = t("This resource will be 
+                    available on !time_until_embargo_is_lifted", array('!time_until_embargo_is_lifted' =>
+                            format_string(date('M d Y', strtotime($check_embargo[0]['date']['value'])))));
+                    }
+
+//                dpm(trim(current_path(), 'islandora/object'));
+                }
+            }
+            // dsm($ri->sparqlQuery($current_embargo));
+        }
+    }
 //    Retraction Notice instead.
 
-}
-
-
-function hook_page_alter(){
-dsm('Boom');
     //Example of desired return
 //Embargo will expire:
 //21-Aug-2017 11:05 AM EDT
 //Released to reporters:
 //14-Aug-2017 3:00 PM EDT
 }
+
 
 function islandora_scholar_tombstone_admin() {
     $form = array();
