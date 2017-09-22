@@ -13,7 +13,12 @@
  */
 function islandora_scholar_tombstone_install() {
 
-  // Do some things on install, like setting the module weight.
+  // Set the 403 page to a custom node
+  // currently_not_available
+  // Remove template's line 63
+  //     if($header == "403 Forbidden") {
+  //       $variables['theme_hook_suggestions'][] = 'page__404';
+  //     }
 }
 
 /**
@@ -21,5 +26,5 @@ function islandora_scholar_tombstone_install() {
  */
 function islandora_scholar_tombstone_uninstall() {
 
-  // Do some things on uninstall, like deleting all variables.
+  // Unset the 403 page (currently_not_available)
 }
