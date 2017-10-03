@@ -13,13 +13,25 @@
     // this is being executed.
     attach: function (context, settings) {
 
-      // Here starts the real functionality.
-      console.log('Hello world');
+      /**
+       * Check the PDF and full_text boxes as a template.
+       * @type {Bool}
+       */
+      document.getElementById("edit-ds-options-pdf").checked = true;
+      document.getElementById("edit-ds-options-full-text").checked = true;
 
-      // We use `once()` when we only want to run something once. The code
-      // below will behave very similarly to what would do inside
-      // `jQuery(document).ready()`.
-      $('span.custom-module', context).once().text(Drupal.t('Hello world'));
+/**
+ * This loops through the Suppl_ files and automatically checks them.
+ * @method for
+ * @param  {[type]} [i=0; i < 1000; i++] from 0 to 999.
+ * @return {[type]}Checks the DOM elements.
+ */
+      for (i = 0; i < 1000; i++) {
+        var str = "edit-ds-options-suppl-"+[i];
+        str = str.replace(/^\s+|\s+$/g,"");
+        document.getElementById(str).checked = true;
+      }
+
     }
   };
 })(jQuery);
