@@ -31,7 +31,14 @@
         str = str.replace(/^\s+|\s+$/g,"");
         document.getElementById(str).checked = true;
       }
+console.log(document.getElementById("edit-update-date-options-indefinite-embargo").checked);
+console.log(document.getElementById("edit-dsid-object").checked);
 
+if (document.getElementById("edit-update-date-options-indefinite-embargo").checked == true && document.getElementById("edit-dsid-object").checked == true) {
+  console.log('Warning.');
+}
+// THIS NEEDS TO LOOK AT THE CLICK EVENT FOR IT TO WORK....
+// Look for the Object-level embargo & Embargo indefinitely click event!!
     }
   };
 })(jQuery);
