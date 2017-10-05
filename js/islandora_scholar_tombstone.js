@@ -31,14 +31,26 @@
         str = str.replace(/^\s+|\s+$/g,"");
         document.getElementById(str).checked = true;
       }
-console.log(document.getElementById("edit-update-date-options-indefinite-embargo").checked);
-console.log(document.getElementById("edit-dsid-object").checked);
 
-if (document.getElementById("edit-update-date-options-indefinite-embargo").checked == true && document.getElementById("edit-dsid-object").checked == true) {
-  console.log('Warning.');
-}
+
+
 // THIS NEEDS TO LOOK AT THE CLICK EVENT FOR IT TO WORK....
 // Look for the Object-level embargo & Embargo indefinitely click event!!
+  // console.log(document.getElementById("input#edit-dsid-datastream.form-radio"));
+
+	$(document).ready(function(){
+	    $('input[type=radio]').click(function(){
+	        // console.log(this.value);
+					if (document.getElementById("edit-update-date-options-indefinite-embargo").checked &&
+document.getElementById("edit-dsid-object").checked){
+	// alert('This is an "Object-Level Embargo" with an "indefinite embargo date". You are about to flag this to be withdrawn and purged during the next maintainence cycle.');
+	showAlert("Warning message", "danger", 5000);
+}
+
+	    });
+	});
+
+
     }
   };
 })(jQuery);
