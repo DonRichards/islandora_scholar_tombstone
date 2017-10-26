@@ -6,51 +6,34 @@
  * For how to add this file to your module, see https://drupal.org/node/304255
  */
 
-(function ($) {
-  Drupal.behaviors.customModule = {
+(function($) {
+  Drupal.behaviors.islandora_scholar_tombstone = {
 
     // The `context` and `settings` arguments are specific to when and where
     // this is being executed.
-    attach: function (context, settings) {
+    attach: function(context, settings) {
 
       /**
-       * Check the PDF and full_text boxes as a template.
-       * @type {Bool}
+       * [description]
+       * @method
+       * @return {[type]} [description]
        */
-      document.getElementById("edit-ds-options-pdf").checked = true;
-      document.getElementById("edit-ds-options-full-text").checked = true;
+      $(document).ready(function() {
+        $('input[type=radio]').click(function() {
+          if (document.getElementById("edit-update-date-options-indefinite-embargo").checked && document.getElementById("edit-dsid-object").checked) {
+            alert('This is an "Object-Level Embargo" with an "indefinite embargo date". This action will remove owner and manager access to this. Ultimately, this submission will be archived and only System Administrators will have any further access once applied.');
+          }
+          if (document.getElementById("edit-ds-options-full-text").checked != null && document.getElementById("edit-ds-options-full-text").checked == false ) {
+            document.getElementById("edit-ds-options-full-text").click();
+            document.getElementById("edit-ds-options-pdf").click();
 
-/**
- * This loops through the Suppl_ files and automatically checks them.
- * @method for
- * @param  {[type]} [i=0; i < 1000; i++] from 0 to 999.
- * @return {[type]}Checks the DOM elements.
- */
-      for (i = 0; i < 1000; i++) {
-        var str = "edit-ds-options-suppl-"+[i];
-        str = str.replace(/^\s+|\s+$/g,"");
-        document.getElementById(str).checked = true;
-      }
-
-
-
-// THIS NEEDS TO LOOK AT THE CLICK EVENT FOR IT TO WORK....
-// Look for the Object-level embargo & Embargo indefinitely click event!!
-  // console.log(document.getElementById("input#edit-dsid-datastream.form-radio"));
-
-	$(document).ready(function(){
-	    $('input[type=radio]').click(function(){
-	        // console.log(this.value);
-					if (document.getElementById("edit-update-date-options-indefinite-embargo").checked &&
-document.getElementById("edit-dsid-object").checked){
-	// alert('This is an "Object-Level Embargo" with an "indefinite embargo date". You are about to flag this to be withdrawn and purged during the next maintainence cycle.');
-	showAlert("Warning message", "danger", 5000);
-}
-
-	    });
-	});
-
-
+            for (i = 0; i < 10; i++) {
+              var str = "edit-ds-options-suppl-" + [i];
+              document.getElementById(str).click();
+            };
+          }
+        });
+      });
     }
   };
 })(jQuery);
