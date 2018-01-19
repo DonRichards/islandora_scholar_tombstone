@@ -26,8 +26,8 @@ function islandora_scholar_tombstone_menu() {
         'description' => 'Description of your On this date settings page',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('islandora_scholar_tombstone'),
-        'access arguments' => array('administer islandora_scholar_tombstone settings'),
-        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array('Administer site configuration'),
+        'file' => 'islandora_scholar_tombstone.inc',
     );
   return $items;
 }
@@ -36,10 +36,8 @@ function islandora_scholar_tombstone_menu() {
  * Implements hook_help().
  */
 function islandora_scholar_tombstone_help($path, $arg) {
-
   switch ($path) {
     case 'admin/help#islandora_scholar_tombstone':
-
       // Return a line-break version of the README.
       $readme = file_get_contents(drupal_get_path('module', 'islandora_scholar_tombstone') . '/README.txt');
       return nl2br($readme);
@@ -66,6 +64,7 @@ function islandora_scholar_tombstone_page() {
  * Add JavaScript and CSS code to every page.
  */
 function islandora_scholar_tombstone_page_build() {
+	// dsm('page alter');
 // dsm('module is running');
  drupal_add_js(drupal_get_path('module', 'islandora_scholar_tombstone') . '/js/islandora_scholar_tombstone.js');
  drupal_add_css(drupal_get_path('module', 'islandora_scholar_tombstone') . '/css/islandora_scholar_tombstone.css');
@@ -82,6 +81,7 @@ function islandora_scholar_tombstone_page_alter(&$page)
   // dsm(get_defined_vars());
   $path = current_path();
   $path_alias = drupal_lookup_path('alias',$path);
+
   // dsm($path_alias);
 
 	// $page['content']['system_main']['dsid']['#default_value'] = t('datastream');
@@ -111,7 +111,7 @@ function islandora_scholar_tombstone_page_alter(&$page)
   }
 
   /**
-   * XXXXXXXXXXXXXXXXXXXXXX.
+   *
    * @var [type]
    *
    * This needs to be wrapped in an "if" statement for only ETDs.
@@ -162,12 +162,27 @@ EOQ;
 //  Looking to get the object's information and pipe it to line 160
     // dpm(trim(current_path(), 'islandora/object'));
 
-dpm($not_check_embargo);
-//    $current_obj = $not_check_embargo;
-//    dpm($page);
+	// dpm($not_check_embargo);
+   $current_obj = $not_check_embargo;
+   // dpm($page);
+	 // dsm($check_embargo);
 //    dsm($count ? $ri->countQuery($current_embargo, 'sparql') : $ri->sparqlQuery($current_embargo, 'unlimited', '0'));
-  //  dsm($check_embargo[0]['date']['value']);
-//    dpm(t(strtotime($check_embargo[0]['date']['value'])), 'error');
+   // dsm($check_embargo[0]['date']['value']);
+   if(isset($check_embargo[0]['date']['value'])) {
+		 if($check_embargo[0]['date']['value'] != 'indefinite') {
+		   $embargo_to_be_released = t(strtotime($check_embargo[0]['date']['value']));
+			 $embargo_to_be_released_string = t($check_embargo[0]['date']['value']);
+			 if($_SERVER['REQUEST_TIME'] < $embargo_to_be_released) {
+				 if(isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
+						$page['content']['system_main']['citation.tab']['suffix']['#markup'] = '</div><div class="embargo-message"><h2>Embargo until ' . date('F jS Y', t(strtotime($check_embargo[0]['date']['value']))) . '</h2><p>This submission has been embargoed. The embargo with release on '.date('F jS Y h:i:s A (T)', t(strtotime($check_embargo[0]['date']['value']))).'</p></div>';
+				 }
+			 }
+		 } else {
+			 if(isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
+					$page['content']['system_main']['citation.tab']['citation']['#markup'] = '<div class="csl-bib-body"><div style="text-indent: -25px; padding-left: 25px;"><div class="csl-entry"><div class="withdrawn-message"><h2>This has been withdrawn</h2><p>This submission was withdrawn and is no longer available.</p></div></div></div></div>';
+			 }
+		 }
+		}
 //    dpm(trim(current_path(), 'islandora/object'));
 
 
@@ -190,9 +205,7 @@ dpm($not_check_embargo);
         // Object Level Embargo AKA Withdrawn
         if ($check_embargo[0]['date']['value'] == 'indefinite') {
             $page['content']['system_main']['nodes'][8]['body'][0]['#markup'] = t('
-                    <h1>@title</h1>
-                    <p>This has been withdrawn and no date set for release.</p>
-                    ', array('@title' => $current_obj));
+                    @title', array('@title' => $current_obj));
         } else {
             foreach ($check_embargo as $key => $value) {
 

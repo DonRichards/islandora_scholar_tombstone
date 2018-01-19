@@ -26,6 +26,6 @@ function islandora_scholar_tombstone_install() {
  * Implements hook_uninstall().
  */
 function islandora_scholar_tombstone_uninstall() {
-  variable_unset('islandora_scholar_tombstone_ETD_message');
+	variable_unset('islandora_scholar_tombstone_ETD_message');
   // Unset the 403 page (currently_not_available)
 }
