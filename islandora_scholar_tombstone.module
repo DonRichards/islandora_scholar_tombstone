@@ -19,7 +19,8 @@
 /**
  * Implements hook_menu().
  */
-function islandora_scholar_tombstone_menu() {
+function islandora_scholar_tombstone_menu()
+{
     $items = array();
     $items['admin/settings/islandora_scholar_tombstone'] = array(
         'title' => 'On this date module settings',
@@ -29,14 +30,15 @@ function islandora_scholar_tombstone_menu() {
         'access arguments' => array('Administer site configuration'),
         'file' => 'islandora_scholar_tombstone.inc',
     );
-  return $items;
+    return $items;
 }
 
 /**
  * Implements hook_help().
  */
-function islandora_scholar_tombstone_help($path, $arg) {
-  switch ($path) {
+function islandora_scholar_tombstone_help($path, $arg)
+{
+    switch ($path) {
     case 'admin/help#islandora_scholar_tombstone':
       // Return a line-break version of the README.
       $readme = file_get_contents(drupal_get_path('module', 'islandora_scholar_tombstone') . '/README.txt');
@@ -53,9 +55,9 @@ function islandora_scholar_tombstone_help($path, $arg) {
  * @return string
  *   The content of the page.
  */
-function islandora_scholar_tombstone_page() {
-	// dsm('NOT loading');
-  return 'Fishes';
+function islandora_scholar_tombstone_page()
+{
+    return 'Fishes';
 }
 
 /**
@@ -63,14 +65,10 @@ function islandora_scholar_tombstone_page() {
  *
  * Add JavaScript and CSS code to every page.
  */
-function islandora_scholar_tombstone_page_build() {
-	// dsm('page alter');
-// dsm('module is running');
- drupal_add_js(drupal_get_path('module', 'islandora_scholar_tombstone') . '/js/islandora_scholar_tombstone.js');
- drupal_add_css(drupal_get_path('module', 'islandora_scholar_tombstone') . '/css/islandora_scholar_tombstone.css');
-//  $path = drupal_get_path_alias($_GET['q']);
-
-
+function islandora_scholar_tombstone_page_build()
+{
+    drupal_add_js(drupal_get_path('module', 'islandora_scholar_tombstone') . '/js/islandora_scholar_tombstone.js');
+    drupal_add_css(drupal_get_path('module', 'islandora_scholar_tombstone') . '/css/islandora_scholar_tombstone.css');
 }
 
 /**
@@ -78,50 +76,32 @@ function islandora_scholar_tombstone_page_build() {
  */
 function islandora_scholar_tombstone_page_alter(&$page)
 {
-  // dsm(get_defined_vars());
-  $path = current_path();
-  $path_alias = drupal_lookup_path('alias',$path);
+    $path = current_path();
+    $path_alias = drupal_lookup_path('alias', $path);
 
-  // dsm($path_alias);
+    /**
+     * This is where the functions check to see if on an object.
+     * @var String
+     *
+     * This checks if page alias is 'currently_not_available' and if the embargo
+     * is set.
+     */
+    if ($path_alias == 'currently_not_available') {
+        dsm('Path alias matches');
+    }
 
-	// $page['content']['system_main']['dsid']['#default_value'] = t('datastream');
-  // $page['content']['system_main']['dsid']['#value'] = t('datastream');
-	// $page['content']['system_main']['dsid']['object']['#value'] = t('datastream');
-	// $page['content']['system_main']['dsid']['datastream']['#value'] = t('datastream');
-	// dsm($page['content']['system_main']['ds_options']['DC']['#value']);
-	// $page['content']['system_main']['ds_options']['DC']['#checked'] = TRUE;
-	// $page['content']['system_main']['ds_options']['PDF']['#checked'] = TRUE;
-	// $page['content']['system_main']['ds_options']['FULL_TEXT']['#checked'] = TRUE;
-	// for ($x = 0; $x <= 999; $x++) {
-  //   // echo "The number is: $x <br>";
-  //   $which_file = 'SUPPL_'.$x;
-	// 	$page['content']['system_main']['ds_options'][$which_file]['#checked'] = TRUE;
-	// }
+    /**
+     *
+     * @var [type]
+     *
+     * This needs to be wrapped in an "if" statement for only ETDs.
+     */
+    if (isset($page['content']['system_main']['citation.tab']['preview']['#path'])) {
+        unset($page['content']['system_main']['citation.tab']['preview']['#path']);
+    }
 
-
-  /**
-   * This is where the functions check to see if on an object.
-   * @var String
-   *
-   * This checks if page alias is 'currently_not_available' and if the embargo
-   * is set.
-   */
-  if ($path_alias == 'currently_not_available') {
-    dsm('Path alias matches');
-  }
-
-  /**
-   *
-   * @var [type]
-   *
-   * This needs to be wrapped in an "if" statement for only ETDs.
-   */
-  if (isset($page['content']['system_main']['citation.tab']['preview']['#path'])) {
-    unset($page['content']['system_main']['citation.tab']['preview']['#path']);
-  }
-
-  module_load_include('inc', 'islandora_scholar_embargo', 'includes/utilities');
-  $count = FALSE;
+    module_load_include('inc', 'islandora_scholar_embargo', 'includes/utilities');
+    $count = false;
 
     $current_embargo = <<<EOQ
     PREFIX is: <info:islandora/islandora-system:def/scholar#>
@@ -138,9 +118,7 @@ EOQ;
 EOQ;
     }
 
-//    ?obj <http://purl.org/dc/elements/1.1/title> ?some
-//    ?obj <info:fedora/fedora-system:def/relations-external#isMemberOfCollection> <info:fedora/utk.ir:td>
-$not_current_embargo = <<<EOQ
+    $not_current_embargo = <<<EOQ
 SELECT ?obj
 FROM <#ri>
 WHERE {
@@ -159,46 +137,29 @@ EOQ;
     $object_embargoed = trim(current_path(), 'islandora/object');
     $not_check_embargo = $ri->sparqlQuery($not_current_embargo, $object_embargoed);
 
-//  Looking to get the object's information and pipe it to line 160
-    // dpm(trim(current_path(), 'islandora/object'));
+    //  Looking to get the object's information and pipe it to line 160
+    $current_obj = $not_check_embargo;
+    if (isset($check_embargo[0]['date']['value'])) {
+        if ($check_embargo[0]['date']['value'] != 'indefinite') {
+            $embargo_to_be_released = t(strtotime($check_embargo[0]['date']['value']));
+            $embargo_to_be_released_string = t($check_embargo[0]['date']['value']);
+            if ($_SERVER['REQUEST_TIME'] < $embargo_to_be_released) {
+                if (isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
+                    $page['content']['system_main']['citation.tab']['citation']['#suffix'] = '</span><div class="embargo-message"><h2>Embargo until ' . date('F jS Y', t(strtotime($check_embargo[0]['date']['value']))) . '</h2><p>This submission has been embargoed. The embargo with release on '.date('F jS Y h:i:s A (T)', t(strtotime($check_embargo[0]['date']['value']))).'</p></div>';
+                }
+            }
+        } else {
+            if (isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
+                $page['content']['system_main']['citation.tab']['citation']['#markup'] = '<div class="csl-bib-body"><div style="text-indent: -25px; padding-left: 25px;"><div class="csl-entry"><div class="withdrawn-message"><h2>This has been withdrawn</h2><p>This submission was withdrawn and is no longer available.</p></div></div></div></div>';
+            }
+        }
+    }
 
-	// dpm($not_check_embargo);
-   $current_obj = $not_check_embargo;
-   // dpm($page);
-	 // dsm($check_embargo);
-//    dsm($count ? $ri->countQuery($current_embargo, 'sparql') : $ri->sparqlQuery($current_embargo, 'unlimited', '0'));
-   // dsm($check_embargo[0]['date']['value']);
-   if(isset($check_embargo[0]['date']['value'])) {
-		 if($check_embargo[0]['date']['value'] != 'indefinite') {
-		   $embargo_to_be_released = t(strtotime($check_embargo[0]['date']['value']));
-			 $embargo_to_be_released_string = t($check_embargo[0]['date']['value']);
-			 if($_SERVER['REQUEST_TIME'] < $embargo_to_be_released) {
-				 if(isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
-						$page['content']['system_main']['citation.tab']['suffix']['#markup'] = '</div><div class="embargo-message"><h2>Embargo until ' . date('F jS Y', t(strtotime($check_embargo[0]['date']['value']))) . '</h2><p>This submission has been embargoed. The embargo with release on '.date('F jS Y h:i:s A (T)', t(strtotime($check_embargo[0]['date']['value']))).'</p></div>';
-				 }
-			 }
-		 } else {
-			 if(isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
-					$page['content']['system_main']['citation.tab']['citation']['#markup'] = '<div class="csl-bib-body"><div style="text-indent: -25px; padding-left: 25px;"><div class="csl-entry"><div class="withdrawn-message"><h2>This has been withdrawn</h2><p>This submission was withdrawn and is no longer available.</p></div></div></div></div>';
-			 }
-		 }
-		}
-//    dpm(trim(current_path(), 'islandora/object'));
-
-
-  //  if embargo date is less than current date display message
-
-
-// convert $check_embargo into a foreach
-// Check if ($check_embargo[i]['obj']['value'] == utk.ir.td:10) <- current object
-
-
-  if (isset($check_embargo[0]['date']['value'])) {
+    if (isset($check_embargo[0]['date']['value'])) {
         // Set these so it can be dynamically called
-        $datastreams_required_for_an_withdrawn_message = array
-        (
-            array('MODS', NULL),
-            array('PDF', NULL)
+        $datastreams_required_for_an_withdrawn_message = array(
+            array('MODS', null),
+            array('PDF', null)
         );
         $collections_using_this_withdrawn_message = array('utk.ir.td');
 
@@ -208,49 +169,37 @@ EOQ;
                     @title', array('@title' => $current_obj));
         } else {
             foreach ($check_embargo as $key => $value) {
-
                 if ($value['date']['value'] == 'indefinite') {
-//                    This is withdrawn
-                    $page['content']['system_main']['nodes'][8]['body'][0]['#markup'] = t("
+                    // This is withdrawn
+                    $page['content']['system_main']['nodes'][8]['body'][0]['#markup'] = t(
+                        "
                     !withdrawn_submission_title was withdrawn TRACE",
-                    array("!withdrawn_submission_title" => time()));
+                    array("!withdrawn_submission_title" => time())
+                    );
                 } else {
                     if ((isset($page['content']['system_main']['citation.tab']['citation']['#markup'])) && ($page['content']['system_main']['citation.tab']['citation']['#markup'] == 'Unable to load MODS.')) {
                         $page['content']['system_main']['citation.tab']['citation']['#markup'] =
-                            t("This resource is embargoed until !time_until_embargo_is_lifted",
-                                array('!time_until_embargo_is_lifted' => format_date(strtotime($value['date']['value']), 'custom', t('M j, Y', array(), array('context' => 'php date format')))));
+                            t(
+                                "This resource is embargoed until !time_until_embargo_is_lifted",
+                                array('!time_until_embargo_is_lifted' => format_date(strtotime($value['date']['value']), 'custom', t('M j, Y', array(), array('context' => 'php date format'))))
+                            );
                     }
-
-//                dpm(trim(current_path(), 'islandora/object'));
                 }
             }
-            // dsm($ri->sparqlQuery($current_embargo));
         }
     }
-//    Retraction Notice instead.
-
-    //Example of desired return
-//Embargo will expire:
-//21-Aug-2017 11:05 AM EDT
-//Released to reporters:
-//14-Aug-2017 3:00 PM EDT
-
-//    <info:fedora/utk.ir:td> <info:fedora/fedora-system:def/model#state> <info:fedora/fedora-system:def/model#Active> .
-//    <info:fedora/utk.ir:td> <info:fedora/fedora-system:def/model#ownerId> "admin" .
-//
 }
 
 
-function islandora_scholar_tombstone_admin() {
+function islandora_scholar_tombstone_admin()
+{
     $form = array();
-
     $form['islandora_scholar_tombstone_datastreams'] = array(
         '#type' => 'textfield',
         '#title' => t('Datastreams Required'),
         '#default_value' => variable_get('islandora_scholar_tombstone_datastreams'),
         '#description' => t("Give a list of datastreams to look for /n Examples: 'MODS','PDF' ."),
-        '#required' => TRUE,
+        '#required' => true,
     );
-
     return system_settings_form($form);
 }
