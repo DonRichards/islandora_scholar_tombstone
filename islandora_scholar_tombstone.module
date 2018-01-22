@@ -118,73 +118,53 @@ EOQ;
 EOQ;
     }
 
-    $not_current_embargo = <<<EOQ
-SELECT ?obj
-FROM <#ri>
-WHERE {
-?obj <info:fedora/fedora-system:def/relations-external#isMemberOfCollection> <info:fedora/utk.ir:td>
-}
-EOQ;
-    if ($count) {
-        $not_current_embargo .= <<<EOQ
-        ORDER BY ?x
-        }
-EOQ;
-    }
+//     $not_current_embargo = <<<EOQD
+//     SELECT ?obj
+//       FROM <#ri>
+//       WHERE {
+//         ?obj <info:fedora/fedora-system:def/relations-external#isMemberOfCollection> <info:fedora/utk.ir:td>
+//       }
+//
+// EOQD;
+//     if ($count) {
+//         $not_current_embargo .= <<<EOQD
+//         ORDER BY ?x
+//     }
+// EOQD;
+//     }
+
     $connection = islandora_get_tuque_connection();
     $ri = $connection->repository->ri;
     $check_embargo = $ri->sparqlQuery($current_embargo, 'unlimited', '0');
     $object_embargoed = trim(current_path(), 'islandora/object');
-    $not_check_embargo = $ri->sparqlQuery($not_current_embargo, $object_embargoed);
+    // $not_check_embargo = $ri->sparqlQuery($not_current_embargo, $object_embargoed);
 
     //  Looking to get the object's information and pipe it to line 160
-    $current_obj = $not_check_embargo;
+    // $current_obj = $not_check_embargo;
     if (isset($check_embargo[0]['date']['value'])) {
+
         if ($check_embargo[0]['date']['value'] != 'indefinite') {
             $embargo_to_be_released = t(strtotime($check_embargo[0]['date']['value']));
             $embargo_to_be_released_string = t($check_embargo[0]['date']['value']);
+
             if ($_SERVER['REQUEST_TIME'] < $embargo_to_be_released) {
                 if (isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
                     $page['content']['system_main']['citation.tab']['citation']['#suffix'] = '</span><div class="embargo-message"><h2>Embargo until ' . date('F jS Y', t(strtotime($check_embargo[0]['date']['value']))) . '</h2><p>This submission has been embargoed. The embargo with release on '.date('F jS Y h:i:s A (T)', t(strtotime($check_embargo[0]['date']['value']))).'</p></div>';
                 }
+                if (isset($page['content']['system_main']['citation.tab'])) {
+                  $page['content']['system_main']['citation.tab']['pdf_download']['#markup'] = '<label>Downloads </label> <a id="embargoed_pdf_link" class="embargoed_link" href="#embargoed_pdf_link">PDF</a>';
+                  $page['content']['system_main']['citation.tab']['supplemental_download_0']['#markup'] = '<label>Supplemental Files </label><a id="embargoed_Suppl_link" class="embargoed_link" href="#">File(s)</a><br/><a class="embargoed_link" href="#">....</a>';
+                }
+
             }
         } else {
             if (isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
                 $page['content']['system_main']['citation.tab']['citation']['#markup'] = '<div class="csl-bib-body"><div style="text-indent: -25px; padding-left: 25px;"><div class="csl-entry"><div class="withdrawn-message"><h2>This has been withdrawn</h2><p>This submission was withdrawn and is no longer available.</p></div></div></div></div>';
-            }
-        }
-    }
-
-    if (isset($check_embargo[0]['date']['value'])) {
-        // Set these so it can be dynamically called
-        $datastreams_required_for_an_withdrawn_message = array(
-            array('MODS', null),
-            array('PDF', null)
-        );
-        $collections_using_this_withdrawn_message = array('utk.ir.td');
-
-        // Object Level Embargo AKA Withdrawn
-        if ($check_embargo[0]['date']['value'] == 'indefinite') {
-            $page['content']['system_main']['nodes'][8]['body'][0]['#markup'] = t('
-                    @title', array('@title' => $current_obj));
-        } else {
-            foreach ($check_embargo as $key => $value) {
-                if ($value['date']['value'] == 'indefinite') {
-                    // This is withdrawn
-                    $page['content']['system_main']['nodes'][8]['body'][0]['#markup'] = t(
-                        "
-                    !withdrawn_submission_title was withdrawn TRACE",
-                    array("!withdrawn_submission_title" => time())
-                    );
-                } else {
-                    if ((isset($page['content']['system_main']['citation.tab']['citation']['#markup'])) && ($page['content']['system_main']['citation.tab']['citation']['#markup'] == 'Unable to load MODS.')) {
-                        $page['content']['system_main']['citation.tab']['citation']['#markup'] =
-                            t(
-                                "This resource is embargoed until !time_until_embargo_is_lifted",
-                                array('!time_until_embargo_is_lifted' => format_date(strtotime($value['date']['value']), 'custom', t('M j, Y', array(), array('context' => 'php date format'))))
-                            );
-                    }
+                if (isset($page['content']['system_main']['citation.tab'])) {
+                  $page['content']['system_main']['citation.tab']['pdf_download']['#markup'] = '<label>Downloads </label> <a id="embargoed_pdf_link" class="embargoed_link" href="#embargoed_pdf_link">PDF</a>';
+                  $page['content']['system_main']['citation.tab']['supplemental_download_0']['#markup'] = '<label>Supplemental Files </label><a id="embargoed_Suppl_link" class="embargoed_link" href="#">File(s)</a><br/><a class="embargoed_link" href="#">....</a>';
                 }
+
             }
         }
     }
