@@ -103,11 +103,10 @@ function islandora_scholar_tombstone_page_alter(&$page)
 
     $current_embargo = <<<EOQ
     PREFIX is: <info:islandora/islandora-system:def/scholar#>
-    SELECT ?obj ?date
+    SELECT ?date
     FROM <#ri>
         WHERE {
-          ?obj <info:islandora/islandora-system:def/scholar#embargo-until> ?date
-          filter regex(str(?obj), 'info:fedora/$object_embargoed')
+          <info:fedora/$object_embargoed> <info:islandora/islandora-system:def/scholar#embargo-until> ?date
           }
 EOQ;
     if ($count) {
