@@ -21,6 +21,8 @@
       $(document).ready(function() {
         // Sets the default submit text for the default state
         $("#edit-submit").prop('value', 'Request Faculty/Staff Embargo');
+        // Only show on embaro page.
+        if (window.location.href.indexOf("/manage/embargo") >= 0) {
         // Onclick this evaluates the inputs to determine what to display.
         $('input[type=radio]').click(function() {
           $('#alert').remove();
@@ -49,6 +51,7 @@
             };
           }
         });
+        }
       });
     }
   };
