@@ -19,8 +19,9 @@
        * @return {[click]} Upon click this looks for value to set embargo warnings.
        */
       $(document).ready(function() {
+        var embargoLiftExist = document.getElementById("edit-update-options-lift-embargo");
         // Only show on embaro page.
-        if (window.location.href.indexOf("/manage/embargo") >= 0) {
+        if (window.location.href.indexOf("/manage/embargo") >= 0 && !embargoLiftExist) {
           // Sets the default submit text for the default state
           $("#edit-submit").prop('value', 'Request Faculty/Staff Embargo');
           // Onclick this evaluates the inputs to determine what to display.
