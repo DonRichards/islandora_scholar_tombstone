@@ -99,15 +99,14 @@ function islandora_scholar_tombstone_page_alter(&$page)
     $count = false;
 
     // PID from URL
-    $object_embargoed = (explode("/", trim(current_path(), 'islandora/object'))[0]);
-
+    $object_pid_from_url = (explode("/", trim(current_path(), 'islandora/object'))[0]);
     $current_embargo = <<<EOQ
     PREFIX is: <info:islandora/islandora-system:def/scholar#>
     SELECT ?obj ?date
     FROM <#ri>
         WHERE {
           ?obj <info:islandora/islandora-system:def/scholar#embargo-until> ?date
-          filter regex(str(?obj), 'info:fedora/$object_embargoed')
+          filter regex(str(?obj), 'info:fedora/$object_pid_from_url')
           }
 EOQ;
     if ($count) {
