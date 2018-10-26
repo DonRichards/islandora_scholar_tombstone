@@ -106,7 +106,7 @@ function islandora_scholar_tombstone_page_alter(&$page)
     FROM <#ri>
         WHERE {
           ?obj <info:islandora/islandora-system:def/scholar#embargo-until> ?date
-          filter regex(str(?obj), 'info:fedora/$object_pid_from_url')
+          filter regex(str(?obj), 'info:fedora/$object_pid_from_url/')
           }
 EOQ;
     if ($count) {
