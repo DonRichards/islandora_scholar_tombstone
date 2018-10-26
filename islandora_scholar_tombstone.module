@@ -99,15 +99,14 @@ function islandora_scholar_tombstone_page_alter(&$page)
     $count = false;
 
     // PID from URL
-    $object_embargoed = (explode("/", trim(current_path(), 'islandora/object'))[0]);
-
+    $object_pid_from_url = (explode("/", trim(current_path(), 'islandora/object'))[0]);
     $current_embargo = <<<EOQ
     PREFIX is: <info:islandora/islandora-system:def/scholar#>
-    SELECT ?obj ?date
+    SELECT ?date
     FROM <#ri>
         WHERE {
           ?obj <info:islandora/islandora-system:def/scholar#embargo-until> ?date
-          filter regex(str(?obj), 'info:fedora/$object_embargoed')
+          filter regex(str(?obj), 'info:fedora/$object_pid_from_url')
           }
 EOQ;
     if ($count) {
@@ -120,7 +119,6 @@ EOQ;
     $connection = islandora_get_tuque_connection();
     $ri = $connection->repository->ri;
     $check_embargo = $ri->sparqlQuery($current_embargo, 'unlimited', '0');
-
     //  Looking to get the object's information and pipe it to line 160
     if (isset($check_embargo[0]['date']['value'])) {
 
@@ -163,20 +161,20 @@ EOT;
 
             // Check if the embargo has expired.
             if ($_SERVER['REQUEST_TIME'] < $embargo_to_be_released) {
+
                 if (isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
                     $page['content']['system_main']['citation.tab']['citation']['#suffix'] = '</span><div class="embargo-message"><h2>Embargo until ' . date('F jS Y', t(strtotime($check_embargo[0]['date']['value']))) . '</h2><p>This submission has been embargoed. The embargo with release on '.date('F jS Y h:i:s A (T)', t(strtotime($check_embargo[0]['date']['value']))).'</p></div>';
                 }
                 if (isset($page['content']['system_main']['citation.tab'])) {
-                    if (! isset($page['content']['system_main']['citation.tab']['pdf_download']['#markup'])) {
-                        $page['content']['system_main']['citation.tab']['pdf_download']['#markup'] = '<label>Downloads </label> <a id="embargoed_pdf_link" class="embargoed_link" href="#embargoed_pdf_link">PDF</a>';
-                    }
-                    if (! isset($page['content']['system_main']['citation.tab']['supplemental_download_0']['#markup'])) {
-                        $page['content']['system_main']['citation.tab']['supplemental_download_0']['#markup'] = '<label>Supplemental Files </label><a id="embargoed_Suppl_link" class="embargoed_link" href="#">File(s)</a><br/><a class="embargoed_link" href="#">....</a>';
+                    if (! isset($page['content']['system_main']['citation.tab']['supplemental_download_0']['#markup']) && !isset($page['content']['system_main']['citation.tab']['pdf_download']['#markup'])) {
+                      $page['content']['system_main']['citation.tab']['supplemental_download_0']['#markup'] = '<div id="unavailable_download_links"><label>Downloads </label> <a id="embargoed_pdf_link" class="embargoed_link" href="#embargoed_pdf_link">PDF</a><br/><label>Supplemental Files </label><a id="embargoed_Suppl_link" class="embargoed_link" href="#">File(s)</a><br/><a class="embargoed_link" href="#">....</a></div>';
+                    } elseif (! isset($page['content']['system_main']['citation.tab']['pdf_download']['#markup'])) {
+                      $page['content']['system_main']['citation.tab']['pdf_download']['#markup'] = '<div id="unavailable_download_links"><label>Downloads </label> <a id="embargoed_pdf_link" class="embargoed_link" href="#embargoed_pdf_link">PDF</a></div>';
                     }
                 }
             }
         } else {
-            // Setting the withdrawn message.
+            // Setting the withdrawn message. Currently not working because of the restricted access behavior.
             if (isset($page['content']['system_main']['citation.tab']['suffix']['#markup'])) {
                 $page['content']['system_main']['citation.tab']['citation']['#markup'] = '<div class="csl-bib-body"><div style="text-indent: -25px; padding-left: 25px;"><div class="csl-entry"><div class="withdrawn-message"><h2>This has been withdrawn</h2><p>This submission was withdrawn and is no longer available.</p></div></div></div></div>';
                 if (isset($page['content']['system_main']['citation.tab'])) {
@@ -203,9 +201,9 @@ function islandora_scholar_tombstone_admin()
     $form = array();
     $form['islandora_scholar_tombstone_datastreams'] = array(
         '#type' => 'textfield',
-        '#title' => t('Datastreams Required'),
+        '#title' => t('Embargo message to display to the users.'),
         '#default_value' => variable_get('islandora_scholar_tombstone_datastreams'),
-        '#description' => t("Give a list of datastreams to look for /n Examples: 'MODS','PDF' ."),
+        '#description' => t("This is a placeholder for future modifications."),
         '#required' => true,
     );
     return system_settings_form($form);
